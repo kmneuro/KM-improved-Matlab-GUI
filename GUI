@@ -1,0 +1,198 @@
+%% GUI
+% NB : This file should be located as follows :
+            % ...project name/GUIs/GUI/GUI.m
+            
+ % A few things about this GUI template:
+ % 1) the code is written in an object-oriented way, meaning that
+ % properties (obj.dir.project) and methods (obj.call_button1()) can be
+ % called from the obj. This means that you do not need to store variables in handles and use GUIData to update the variable handles)
+ % 2) you can access and modify any property of any element of the GUI via the obj (e.g. obj.el.button1.Color = [0 1 0])
+ % 3) click right on any element of the GUI opens the code of the callback function (which is executed when you click left on a button). 
+ % 4) Number of elements of the GUI can be modified programmatically by adding a string to the list of elements (cell variable El). No more opening GUIDE to add a button to your GUI
+   
+ % Karin Morandell 20181128
+ 
+classdef GUI<handle
+    
+    properties
+        fig;
+        dir;
+        gui;
+        el;
+        data;
+        pos;
+        
+    end
+    
+    methods
+        
+        function obj=GUI()
+            
+            dbstop if error
+            
+            % Create directories
+            
+            F = mfilename('fullpath');
+            iel= find(F==filesep,3,'last');
+            obj.dir.project = F(1:iel(1));
+            obj.dir.guis = fullfile(obj.dir.project,'GUIs');
+            obj.dir.thisgui = fullfile(obj.dir.guis,mfilename);% folder with the same name than filename
+            
+            obj.dir.figs = fullfile(obj.dir.project,'figures');
+            obj.dir.code = fullfile(obj.dir.project,'code');
+            obj.dir.data = fullfile(obj.dir.project,'data');
+            obj.dir.database = fullfile(obj.dir.project,'database');
+            
+            Fs=fieldnames(obj.dir); %folders
+            for ifs = 1:numel(Fs)
+                if ~isdir(obj.dir.(Fs{ifs}))
+                    mkdir(obj.dir.(Fs{ifs}))
+                end
+            end
+            addpath(genpath(obj.dir.project))
+            
+            % Create GUI figure
+            obj.gui.f = figure('menu','none','Name','GUI_TEMPLATE');
+            obj.gui.f.Position = [10 10 400 400];
+            
+            % Change background color of the figure to match background of
+            % matlab window
+            mtbcol = com.mathworks.services.Prefs.getColorPref('ColorsBackground');
+            if ispc
+                obj.gui.f.Color = [get(mtbcol,'Red') get(mtbcol,'Green') get(mtbcol,'Blue')]/255;
+            else
+                obj.gui.f.Color = [0.9 0.9 0.9];
+            end
+            % Change elements of the GUI (sections and button names)
+            Sections = {'SECTION1' 'SECTION2' 'SECTION3'};%change names of sections
+            El = {'SECTION1' 'button1' }; %change names of buttons
+            El = cat(2,El,{'SECTION2' 'button2' });
+            El = cat(2,El,{'SECTION3' 'button3' });
+            El = cat(2,El,{'msg'});% message box 
+            
+            % Generate elements of the GUI
+            nEl = numel(El);
+            el_height = 20;
+            el_width = 150;
+            y0=obj.gui.f.Position(4)*0.95;% element vertical position
+            x0=10;% element horiontal position
+            for iel = 1:nEl
+                ele = El{iel};% element name
+                % create element of the GUI
+                eval(['obj.el.' ele '=uicontrol(obj.gui.f,''Style''' ',''pushbutton'');'])
+                set(obj.el.(ele),'position',[x0 y0-el_height*iel el_width el_height],'string',ele,'HorizontalAlignment', 'right')
+                % define callback function for each element
+                % each button can be executed by the following command : obj.call_button1();
+                str = ['call_' ele];
+                eval(['set(obj.el.(ele),''callback''' ',@obj.' str ')'] );
+            end
+            
+            % Section elements (change section elements style to text)
+            for iel = 1:numel(Sections)
+                set(obj.el.(Sections{iel}),'style', 'text','fontsize',12,'horizontalalignment','left','backgroundcolor',obj.gui.f.Color)
+            end
+            
+            % Message box (change message box element to text)
+            x0=sum(obj.el.(Sections{iel}).Position([1 3]))+20;
+            WandH = [150 150];
+            y0=obj.el.(Sections{1}).Position(2)+el_height-WandH(2);
+            set(obj.el.msg,'style', 'text','horizontalalignment','left','position', [x0 y0 WandH],'backgroundcolor','w','string',{'msg:'})
+
+            
+            % Shortcut to code (right click on elements of the
+            % GUI will open corresponding code in the function file)
+            F = methods(mfilename);
+            F=F(strncmp('call_',F,5));
+            for i = 1:numel(F)
+                set(obj.el.(F{i}(6:end)),'uicontextmenu',uicontextmenu('Callback',@obj.FindCode,'UserData',F{i}))
+            end
+            
+            %    Display code for functions (to copy paste in script)
+%             disp('%%*********************************************')
+%             for i = 1:nEl
+%                 call_El=cat(2,'function call_',El{i},'(obj,src,ev)');
+%                 disp(cat(2,'%% ',['call_' El{i}]));
+%                 disp(call_El);
+%                 disp(' ')
+%                 disp('end')
+%                 disp(' ')
+%             end
+%             disp('%%*********************************************')
+            obj.addmsg('GUI initialized');
+        end% opening function
+        
+        %%*********************************************
+        
+        %%*********************************************
+        %% call_SECTION1
+        function call_SECTION1(obj,src,ev)
+            
+        end
+        
+        %% call_button1
+        function call_button1(obj,src,ev)
+            
+        end
+        
+        %% call_SECTION2
+        function call_SECTION2(obj,src,ev)
+            
+        end
+        
+        %% call_button2
+        function call_button2(obj,src,ev)
+            
+        end
+        
+        %% call_SECTION3
+        function call_SECTION3(obj,src,ev)
+            
+        end
+        
+        %% call_button3
+        function call_button3(obj,src,ev)
+            
+        end
+        
+
+        
+        
+        %%*********************************************
+        %% GUI FUNCTIONS
+        %% function addmsg(obj,txt)
+        % Adds message to message box with timestamp
+        function addmsg(obj,txt)
+            txt = {[datestr(now,'HH:MM:SS') ' : ' txt]};
+            End = size(obj.el.msg.String,1);
+            text_max_width = round(obj.el.msg.Position(3)/3);
+            if numel(txt{1})< text_max_width
+                obj.el.msg.String = vertcat(obj.el.msg.String(max([End-2,1]):end),txt{1});
+            else
+                obj.el.msg.String = vertcat(obj.el.msg.String(max([End-3,1]):end),{txt{1}(1:text_max_width)}, {txt{1}(text_max_width+1:end)});
+            end
+            
+        end
+        
+        %% FindCode(obj,src,ev)
+        % This function executes when you right click on any element of the GUI and opens the corresponding code.     
+        function FindCode(obj,src,ev)
+            F=dbstack;
+            T=textscan(fileread(F(1).file),'%s', 'delimiter', '\n');
+            T=T{1};
+            string = ['function*' src.UserData '*('];
+            LineNumber=find(cell2mat(cellfun(@(x) ~isempty(regexp(x,regexptranslate('wildcard',string),'once')),T,'uniformoutput',false)));
+            if numel(LineNumber)>2
+                LN=LineNumber(end-1);
+            elseif numel(LineNumber)>1
+                LN=LineNumber(end);
+            else
+                LN=LineNumber(1);
+            end
+            warning([src.UserData ' found at line ' num2str(LN)])
+            opentoline(fullfile(obj.dir.thisgui,[mfilename '.m']),LN)
+        end     
+    end%methods
+    
+    
+        
+end%OBJ
